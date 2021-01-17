@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2016",
+    "lib": ["es6"],
+    "sourceMap": true,
+    "types": [
+      // add node as an option
+      "node",
+      "dotenv"
+    ],
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "exclude": ["node_modules"]
+}
