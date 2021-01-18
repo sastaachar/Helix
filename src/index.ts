@@ -1,16 +1,13 @@
 import { config } from "dotenv";
-import { Client } from "discord.js";
+import Bot from "./Bot";
 
+// * Setup config in development
 const cur_env = process.env.NODE_ENV;
-
 cur_env === "development" && config();
 
+const TOKEN = process.env.TOKEN;
 try {
-  const bot = new Client();
-  const TOKEN = process.env.TOKEN;
-  console.log(TOKEN);
-
-  bot.login(TOKEN);
+  new Bot(TOKEN);
 } catch (err) {
   console.log(err);
 }
