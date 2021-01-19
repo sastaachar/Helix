@@ -16,7 +16,6 @@ export default class Uptime extends Command {
     console.log("\t\tStarting uptime...");
     this.statusChannelId = "800361324755943494";
     this.messageId = "801151452177235979";
-    this.update(bot);
     getMessage(this.messageId, this.statusChannelId, bot).then((res) => {
       if (res) {
         const msg = res as Message;
@@ -28,7 +27,13 @@ export default class Uptime extends Command {
         });
       }
     });
+    this.liveUpdates(bot);
   }
+
+  liveUpdates = (bot): void => {
+    this.update(bot);
+    setTimeout(this.liveUpdates, 1500000);
+  };
 
   static getCommand = (bot: Bot): Command => {
     if (!Uptime.command) {
