@@ -37,7 +37,6 @@ export default class ServerStarted extends Command {
    * @param startedTs - Started Time Stamp
    */
   update = (bot: Bot): void => {
-    // TODO : store this channel , cause its called many times
     const d = new Date();
 
     const updatedUptime = `Server started @ ${d.toLocaleString()}`;

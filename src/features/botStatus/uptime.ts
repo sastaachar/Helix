@@ -7,9 +7,11 @@ import { getMessage, updateMessage } from "../utils/message";
 export default class Uptime extends Command {
   prefix = "#";
   readonly commandValue: string = "uptime";
+  static command: Command;
+
+  // updatable Command
   statusChannelId: string;
   messageId: string;
-  static command: Command;
 
   private constructor(bot: Bot) {
     super();
@@ -49,8 +51,6 @@ export default class Uptime extends Command {
   };
 
   update = (bot: Bot): void => {
-    // TODO : store this channel , cause its called many times
-
     const updatedUptime = `Uptime : ${timeElapsed(Date.now() - bot.startedAt)}`;
     updateMessage(updatedUptime, this.messageId, this.statusChannelId, bot);
   };

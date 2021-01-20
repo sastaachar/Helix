@@ -1,5 +1,3 @@
-import Bot from "..";
-
 /**
  * @name - startupHandler
  * @param bot - The client from discord.js
