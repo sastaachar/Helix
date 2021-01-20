@@ -1,12 +1,15 @@
 import { Message } from "discord.js";
 import Bot from "..";
 import { Command } from "../../commands/command";
-import ServerStarted from "../../features/botStatus/serverStarted";
-import Uptime from "../../features/botStatus/uptime";
+import { ServerStarted, Uptime } from "../../features/botStatus";
+import Clear from "../../features/clear";
+import { PlaylistManager } from "../../features/playlistManager";
 
 const getCommands = (bot: Bot) => [
   Uptime.getCommand(bot),
   ServerStarted.getCommand(bot),
+  PlaylistManager.getCommand(bot),
+  Clear.getCommand(),
 ];
 
 export class CommandManager {
