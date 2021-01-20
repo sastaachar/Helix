@@ -30,9 +30,9 @@ export default class Uptime extends Command {
     this.liveUpdates(bot);
   }
 
-  liveUpdates = (bot): void => {
+  liveUpdates = (bot: Bot): void => {
     this.update(bot);
-    setTimeout(this.liveUpdates, 1500000);
+    setTimeout(() => this.liveUpdates(bot), 1500000);
   };
 
   static getCommand = (bot: Bot): Command => {
