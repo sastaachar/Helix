@@ -1,4 +1,4 @@
-import { Message } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import Bot from "..";
 import { Command } from "../../commands/command";
 import { ServerStarted, Uptime } from "../../features/botStatus";
@@ -47,6 +47,14 @@ export class CommandManager {
   };
 
   delegate = (commandString: string, msg: Message, bot: Bot): void => {
+    const channel = msg.channel;
+    if (
+      channel.type === "text" &&
+      channel.parent.name === "TESTING" &&
+      process.env.NODE_ENV !== "development"
+    )
+      return;
+
     if (this.commands.has(commandString)) {
       this.commands.get(commandString).execute(msg, bot);
     }
