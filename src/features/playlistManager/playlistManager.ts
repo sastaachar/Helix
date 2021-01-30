@@ -2,14 +2,17 @@ import { Command } from "../../commands/command";
 import Bot from "../../Bot";
 import { Message } from "discord.js";
 import { getMessages, sendMessage, updateMessage } from "../utils/message";
-import { Playlist, Library } from "./playlist";
+import { Playlist, Library, Song } from "./playlist";
+import { getString } from "./views";
 
 export default class PlaylistManager extends Command {
   prefix = "+";
   readonly commandValue: string = "playlist";
   static command: Command;
 
-  playlistsChannelId: string;
+  playlistsDispChannelId: string;
+  playlistDBChannelId: string;
+  musicPlayerChannelId: string;
   messageId: string;
   ready: boolean;
   library: Library;
@@ -18,7 +21,10 @@ export default class PlaylistManager extends Command {
     super();
     this.ready = false;
     console.log("\t\tStaring playlistManager...");
-    this.playlistsChannelId = "801361682458345502";
+    this.playlistsDispChannelId = "801361682458345502";
+    this.playlistDBChannelId = "802225753025544254";
+    this.musicPlayerChannelId = "802243987746193438";
+    this.library = {};
     this.updateList(bot);
   }
 
@@ -50,6 +56,16 @@ export default class PlaylistManager extends Command {
       case "relist":
         this.updateList(bot);
         break;
+      case "play":
+        this.play(args, msg, bot);
+        break;
+      case "updateList":
+        this.updateDisplay(bot);
+        break;
+      case "reprint":
+        this.reprint(bot);
+        break;
+
       default:
         msg.reply("Invalid argument for playlist");
         break;
@@ -62,13 +78,32 @@ export default class PlaylistManager extends Command {
    */
   update = (bot: Bot): void => {
     const d = new Date();
-
     const updatedUptime = `Server started @ ${d.toLocaleString()}`;
-    updateMessage(updatedUptime, this.messageId, this.playlistsChannelId, bot);
+    updateMessage(
+      updatedUptime,
+      this.messageId,
+      this.playlistsDispChannelId,
+      bot
+    );
+  };
+
+  reprint = (bot: Bot): void => {
+    for (const name in this.library) {
+      sendMessage(
+        getString(this.library[name]),
+        this.playlistsDispChannelId,
+        bot
+      )
+        .then((sentMsg) => {
+          this.library[name].dispalyMessageId = sentMsg.id;
+          sentMsg.react("❤️");
+        })
+        .catch(console.error);
+    }
   };
 
   updateList = (bot: Bot): void => {
-    getMessages(this.playlistsChannelId, bot).then((res) => {
+    getMessages(this.playlistDBChannelId, bot).then((res) => {
       this.library = {};
       if (res) {
         const messages = res as Message[];
@@ -76,15 +111,26 @@ export default class PlaylistManager extends Command {
           try {
             const playlist: Playlist = {
               ...JSON.parse(msg.content),
-              messageId: msg.id,
+              dbMessageId: msg.id,
             };
             this.library[playlist.name] = playlist;
           } catch (err) {}
         });
-
+        console.log(this.library);
         this.ready = true;
       }
     });
+  };
+
+  updateDisplay = (bot: Bot): void => {
+    for (const name in this.library) {
+      updateMessage(
+        getString(this.library[name]),
+        this.library[name].dispalyMessageId,
+        this.playlistsDispChannelId,
+        bot
+      );
+    }
   };
 
   addToPlaylist = (args: string[], msg: Message, bot: Bot): void => {
@@ -98,31 +144,59 @@ export default class PlaylistManager extends Command {
       return;
     }
     const name = args[2].toLowerCase();
-    if (this.library[name]) {
-      msg.reply("A playlist with the same name already exists.");
+    const playlist = this.library[name];
+    if (!playlist) {
+      msg.reply("No such playlist exists.");
       return;
     }
 
-    const closed = args.length > 3 && args[3] === "c";
-    const playlist: Playlist = {
-      name,
-      author: `<@${msg.author.id}>`,
-      closed: closed,
-      messageId: "",
-      songs: [],
-    };
-    this.library[name] = playlist;
-    sendMessage(
-      JSON.stringify(playlist, null, 4),
-      this.playlistsChannelId,
+    if (playlist.closed && msg.author.username !== playlist.author) {
+      msg.reply("You dont have the permission to edit this playlist.");
+      return;
+    }
+
+    const songs: Song[] = args
+      .slice(3)
+      .join(" ")
+      .split(",")
+      .map((name) => {
+        return { name: name.trim() };
+      });
+
+    this.library[name].songs = playlist.songs.concat(songs);
+    updateMessage(
+      getString(this.library[name]),
+      playlist.dispalyMessageId,
+      this.playlistsDispChannelId,
       bot
-    );
+    )
+      .then((reply) => {
+        if (!reply) return;
+
+        return updateMessage(
+          JSON.stringify(this.library[name]),
+          playlist.dbMessageId,
+          this.playlistDBChannelId,
+          bot
+        );
+      })
+
+      .catch(console.error);
   };
+
+  /**
+   *
+   * @param args
+   * @param msg
+   * @param bot
+   * @returns
+   */
   newPlaylist = (args: string[], msg: Message, bot: Bot): void => {
     if (args.length < 3) {
       msg.reply("no play list name provided.");
       return;
     }
+
     const name = args[2].toLowerCase();
     if (this.library[name]) {
       msg.reply("A playlist with the same name already exists.");
@@ -132,23 +206,45 @@ export default class PlaylistManager extends Command {
     const closed = args.length > 3 && args[3] === "c";
     const playlist: Playlist = {
       name,
-      author: `<@${msg.author.id}>`,
+      author: msg.author.username,
       closed: closed,
-      messageId: "",
       songs: [],
+      dbMessageId: "",
+      dispalyMessageId: "",
     };
-    const editedString = playlist;
-    delete editedString.messageId;
+
     this.library[name] = playlist;
-    sendMessage(
-      JSON.stringify(editedString, null, 4),
-      this.playlistsChannelId,
-      bot
-    )
+    sendMessage(getString(this.library[name]), this.playlistsDispChannelId, bot)
       .then((sentMsg) => {
-        this.library[name].messageId = sentMsg.id;
-        return sentMsg.react("❤️");
+        this.library[name].dispalyMessageId = sentMsg.id;
+        sentMsg.react("❤️");
+        return sendMessage(
+          JSON.stringify(playlist),
+          this.playlistDBChannelId,
+          bot
+        );
+      })
+      .then((sentMsg) => {
+        // no need to update in db channel
+        this.library[name].dbMessageId = sentMsg.id;
       })
       .catch(console.error);
+  };
+  play = (args: string[], msg: Message, bot: Bot): void => {
+    if (args.length < 3) {
+      msg.reply("no play list name provided.");
+      return;
+    }
+
+    const name = args[2].toLowerCase();
+    const playlist = this.library[name];
+    if (!playlist) {
+      msg.reply("Playlist does'nt exists.");
+      return;
+    }
+
+    playlist.songs.forEach(async (song) => {
+      await sendMessage(`!p ${song.name}`, this.musicPlayerChannelId, bot);
+    });
   };
 }

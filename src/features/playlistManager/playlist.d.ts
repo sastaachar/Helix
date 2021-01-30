@@ -6,7 +6,8 @@ export type Playlist = {
   name: string;
   closed: boolean;
   author: string;
-  messageId: string;
+  dispalyMessageId: string;
+  dbMessageId: string;
   songs: Song[];
 };
 

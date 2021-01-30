@@ -27,7 +27,7 @@ const updateMessage = async (
   msgId: string,
   channelId: string,
   bot: Bot
-): Promise<boolean> => {
+): Promise<Message | boolean> => {
   try {
     const channel = bot.client.channels.cache.find((channel) => {
       return channel.valueOf() === channelId;
@@ -43,8 +43,7 @@ const updateMessage = async (
 
     if (!message) return false;
 
-    await message.edit(content);
-    return true;
+    return await message.edit(content);
   } catch (err) {
     throw err;
   }

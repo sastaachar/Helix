@@ -26,11 +26,14 @@ export default class Clear extends Command {
       return;
     console.log("clearing");
     const channel = msg.channel as TextChannel;
-    channel.messages.fetch().then((mesages) => {
-      mesages.forEach((msg) => {
-        msg.delete();
-      });
-    });
+    channel.messages
+      .fetch()
+      .then((mesages) => {
+        mesages.forEach((msg) => {
+          msg.delete().catch(console.error);
+        });
+      })
+      .catch(console.error);
   };
 
   update = (): void => {
