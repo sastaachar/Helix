@@ -1,9 +1,13 @@
-import { Command } from "../../commands/command";
 import Bot from "../../Bot";
 import { Message } from "discord.js";
-import { getMessages, sendMessage, updateMessage } from "../utils/message";
 import { Playlist, Library, Song } from "./playlist";
 import { getString } from "./views";
+import { Command } from "../../Bot/models";
+import {
+  getMessages,
+  sendMessage,
+  updateMessage,
+} from "../../Bot/utils/message";
 
 export default class PlaylistManager extends Command {
   prefix = "+";

@@ -61,10 +61,9 @@ export default class BotStatus extends SingletonCommand {
     payload: Interaction,
     bot: Bot
   ): Promise<void> => {
-    const options = payload.data.options || [];
+    const options = (payload.data.options as unknown as OptionType[]) || [];
     const params = options.map((ele) => {
-      const opt = ele as unknown as OptionType;
-      if (opt.value) return opt.name;
+      if (ele.value) return ele.name;
     });
 
     this.slashReply(

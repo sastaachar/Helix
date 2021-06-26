@@ -1,5 +1,5 @@
-import { Command } from "../../commands/command";
 import { Message, TextChannel } from "discord.js";
+import { Command } from "../../Bot/models";
 
 export default class Clear extends Command {
   prefix = "!!!";
