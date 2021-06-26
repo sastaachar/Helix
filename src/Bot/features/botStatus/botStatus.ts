@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import Bot from "../..";
 import { Command, SingletonCommand } from "../../models";
+import * as os from "os";
 
 import { find } from "../../controllers/dataCtrl";
 import Interaction from "../../models/interaction";
@@ -13,11 +14,17 @@ export default class BotStatus extends SingletonCommand {
   statusChannelId: string;
   messageId: string;
 
+  botPlatform: string;
+  botTimezone: string;
+
   private constructor(bot: Bot) {
     // aquire data from data model
     super();
 
     console.log("\t\tStarting BotStatus");
+    this.botPlatform = os.platform();
+    this.botTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     this.startCommand(bot);
   }
 
@@ -47,15 +54,14 @@ export default class BotStatus extends SingletonCommand {
   handleMessageCommand = (options: string[], msg: Message, bot: Bot): void => {
     // parse options
 
-    msg.reply(this.getReplyContent(options, bot));
+    msg.reply(this.getReplyContent(options, bot, msg));
   };
 
   handleSlashCommand = async (
     payload: Interaction,
     bot: Bot
   ): Promise<void> => {
-    console.log(payload);
-    const options = payload.data.options;
+    const options = payload.data.options || [];
     const params = options.map((ele) => {
       const opt = ele as unknown as OptionType;
       if (opt.value) return opt.name;
@@ -68,18 +74,48 @@ export default class BotStatus extends SingletonCommand {
     );
   };
 
-  getReplyContent = (params: string[], bot: Bot): string => {
+  getReplyContent = (params: string[], bot: Bot, msg?: Message): string => {
     let ans = "```ml";
     params.forEach((opt) => {
-      if (opt === "u" || opt === "uptime")
-        ans += `\nUptime : ${this.getUptime(bot)}`;
-      else if (opt === "s" || opt === "serverstarted")
-        ans += `\nServerStarted @ ${this.getServerStarted(bot)}`;
+      switch (opt) {
+        case "u":
+        case "uptime": {
+          ans += this.getUptime(bot);
+          break;
+        }
+
+        case "s":
+        case "serverstarted": {
+          ans += this.getServerStarted(bot);
+          break;
+        }
+
+        case "p":
+        case "ping ": {
+          ans += this.getPing(msg);
+          break;
+        }
+
+        case "t":
+        case "timezone": {
+          ans += this.getTimezone();
+          break;
+        }
+
+        case "pl":
+        case "platform": {
+          ans += this.getPlatform();
+          break;
+        }
+      }
     });
 
     if (ans === "```ml") {
-      ans += `\nUptime : ${this.getUptime(bot)}`;
-      ans += `\nServerStarted @ ${this.getServerStarted(bot)}`;
+      ans += this.getUptime(bot);
+      ans += this.getServerStarted(bot);
+      ans += this.getPlatform();
+      ans += this.getTimezone();
+      ans += this.getPing(msg);
     }
 
     ans += "```";
@@ -98,7 +134,7 @@ export default class BotStatus extends SingletonCommand {
   };
 
   private getUptime = (bot: Bot): string => {
-    return timeElapsed(bot.client.uptime);
+    return `\nUptime : ${timeElapsed(bot.client.uptime)}`;
   };
   private getServerStarted = (bot: Bot): string => {
     const currentTime = bot.client.readyAt;
@@ -111,7 +147,18 @@ export default class BotStatus extends SingletonCommand {
       currentTime.getTime() + (ISTOffset + currentOffset) * 60000
     );
 
-    return ISTTime.toLocaleString("en-IN");
+    return `\nServerStarted @ ${ISTTime.toLocaleString("en-IN")}`;
+  };
+
+  private getPing = (msg: Message) => {
+    if (!msg) return "\nPing : Not available";
+    return `\nPing : ${Date.now() - msg.createdTimestamp} ms`;
+  };
+  private getTimezone = () => {
+    return `\nTimezone : ${this.botTimezone} `;
+  };
+  private getPlatform = () => {
+    return `\nPlatform : ${this.botPlatform} `;
   };
 
   public toString = (): string => this.name;
