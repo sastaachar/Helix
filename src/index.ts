@@ -8,6 +8,7 @@ cur_env === "development" && config();
 
 const TOKEN = process.env.TOKEN;
 const bot = new Bot();
+console.log("token : ", TOKEN);
 bot
   .start(TOKEN)
   .then(() => {
