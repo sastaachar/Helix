@@ -8,7 +8,8 @@
     "types": [
       // add node as an option
       "node",
-      "dotenv"
+      "dotenv",
+      "node-fetch"
     ],
     "rootDir": "src",
     "outDir": "dist"

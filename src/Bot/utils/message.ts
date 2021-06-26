@@ -1,5 +1,5 @@
 import { Message, TextChannel } from "discord.js";
-import Bot from "../../Bot";
+import Bot from "../";
 
 /**
  * * Sends message to a channel

@@ -1,4 +1,4 @@
-import { getFixedLen } from "../../../utils/string";
+import { getFixedLen } from "../../../common-utils/string";
 import { Playlist, Song } from "../playlist";
 
 const getString = (playlist: Playlist): string => {

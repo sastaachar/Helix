@@ -1,20 +1,17 @@
 import { Message, TextChannel } from "discord.js";
 import Bot from "..";
-import { Command } from "../../commands/command";
-import { ServerStarted, Uptime } from "../../features/botStatus";
-import Clear from "../../features/clear";
-import { PlaylistManager } from "../../features/playlistManager";
+import { Command } from "../models/";
 
-const getCommands = (bot: Bot) => [
-  Uptime.getCommand(bot),
-  ServerStarted.getCommand(bot),
-  PlaylistManager.getCommand(bot),
-  Clear.getCommand(),
-];
+import BotStatus from "../features/botStatus/botStatus";
+import Interaction from "../models/interaction";
+
+const getCommands = (bot: Bot) => [BotStatus.getCommand(bot)];
 
 export class CommandManager {
+  botPrefix = "`";
   commands: Map<string, Command>;
 
+  // singleton
   private static manager: CommandManager;
   private constructor(bot: Bot) {
     console.log("\tSetting up commands.....");
@@ -32,7 +29,7 @@ export class CommandManager {
   };
 
   addCommand = (cmd: Command): boolean => {
-    const key = cmd.prefix + cmd.commandValue;
+    const key = cmd.name;
     if (this.commands.has(key)) return false;
     this.commands.set(key, cmd);
     return true;
@@ -46,7 +43,7 @@ export class CommandManager {
     return commands;
   };
 
-  delegate = (commandString: string, msg: Message, bot: Bot): void => {
+  delegateMessage = async (msg: Message, bot: Bot): Promise<void> => {
     const channel = msg.channel;
     if (
       channel.type === "text" &&
@@ -55,15 +52,32 @@ export class CommandManager {
     )
       return;
 
-    if (this.commands.has(commandString)) {
-      this.commands.get(commandString).execute(msg, bot);
+    const [command, ...options] = msg.content.split(" ");
+
+    const commandName = command.substring(1);
+    if (this.commands.has(commandName)) {
+      this.commands.get(commandName).handleMessageCommand(options, msg, bot);
+    }
+  };
+
+  delegateSlashCommand = async (
+    payload: Interaction,
+    bot: Bot
+  ): Promise<void> => {
+    const channel = (await bot.client.channels.fetch(
+      payload.channel_id
+    )) as TextChannel;
+
+    if (
+      channel.type === "text" &&
+      channel.parent.name === "TESTING" &&
+      process.env.NODE_ENV !== "development"
+    )
+      return;
+
+    const commandName = payload.data.name;
+    if (this.commands.has(commandName)) {
+      this.commands.get(commandName).handleSlashCommand(payload, bot);
     }
   };
 }
-
-export default (msg: Message, bot: Bot): void => {
-  const commandManger = CommandManager.getManager(bot);
-
-  const commandString = msg.content.split(" ")[0];
-  commandManger.delegate(commandString, msg, bot);
-};
