@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 import fetch from "node-fetch";
 import Bot from "..";
-import Interaction from "./interaction";
+import { Interaction } from "./interaction";
 
 export class Command {
   name: string;
@@ -9,9 +9,11 @@ export class Command {
   ready: boolean;
 
   // buisness logic
-  handleMessageCommand(options: string[], msg: Message, bot: Bot): void {
+  // eslint-disable-next-line
+  handleMessageCommand(msg: Message, bot: Bot): void {
     console.log(`${this.name} cannot be called using message`);
   }
+  // eslint-disable-next-line
   handleSlashCommand(data: Interaction, bot: Bot): void {
     console.log(`${this.name} cannot be called using slash`);
   }
@@ -42,6 +44,7 @@ export class Command {
 
 export abstract class SingletonCommand extends Command {
   static command: SingletonCommand;
+  // eslint-disable-next-line
   static getCommand(bot?: Bot): Command {
     throw new Error("not implemented");
   }

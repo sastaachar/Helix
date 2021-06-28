@@ -4,9 +4,10 @@ import { Command, SingletonCommand } from "../../models";
 import * as os from "os";
 
 import { find } from "../../controllers/dataCtrl";
-import Interaction from "../../models/interaction";
+import { OptionType, Interaction } from "../../models";
 import { updateMessage } from "../../utils/message";
 import { timeElapsed } from "../../../common-utils/dateTime";
+import { parseOptions } from "../../utils/string";
 
 export default class BotStatus extends SingletonCommand {
   name = "botstatus";
@@ -51,8 +52,9 @@ export default class BotStatus extends SingletonCommand {
     return BotStatus.command;
   };
 
-  handleMessageCommand = (options: string[], msg: Message, bot: Bot): void => {
+  handleMessageCommand = (msg: Message, bot: Bot): void => {
     // parse options
+    const options = parseOptions(msg.content);
 
     msg.reply(this.getReplyContent(options, bot, msg));
   };
@@ -166,10 +168,4 @@ export default class BotStatus extends SingletonCommand {
 type BotStatusData = {
   channelId?: string;
   messageId?: string;
-};
-
-type OptionType = {
-  name: string;
-  value: string | number;
-  type: number;
 };

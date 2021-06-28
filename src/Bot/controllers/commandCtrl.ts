@@ -2,10 +2,11 @@ import { Message, TextChannel } from "discord.js";
 import Bot from "..";
 import { Command } from "../models/";
 
-import BotStatus from "../features/botStatus/botStatus";
-import Interaction from "../models/interaction";
+import { BotStatus } from "../features/botStatus";
+import { Interaction } from "../models";
+import { Run } from "../features/run";
 
-const getCommands = (bot: Bot) => [BotStatus.getCommand(bot)];
+const getCommands = (bot: Bot) => [BotStatus.getCommand(bot), Run.getCommand()];
 
 export class CommandManager {
   botPrefix = "`";
@@ -52,11 +53,15 @@ export class CommandManager {
     )
       return;
 
-    const [command, ...options] = msg.content.split(" ");
+    const firstSpace = msg.content.indexOf(" ");
+
+    const command =
+      firstSpace === -1 ? msg.content : msg.content.slice(0, firstSpace);
 
     const commandName = command.substring(1);
+
     if (this.commands.has(commandName)) {
-      this.commands.get(commandName).handleMessageCommand(options, msg, bot);
+      this.commands.get(commandName).handleMessageCommand(msg, bot);
     }
   };
 

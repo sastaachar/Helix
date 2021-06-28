@@ -3,7 +3,7 @@ import { Client, Message, WSEventType } from "discord.js";
 import { CommandManager } from "./controllers/commandCtrl";
 import { timeElapsed } from "../common-utils/dateTime";
 
-import Interaction from "./models/interaction";
+import { Interaction } from "./models";
 
 export default class Bot {
   public botPrefix = ">";
@@ -50,25 +50,6 @@ export default class Bot {
 
   slashCommandHandler = (data: Interaction): void => {
     CommandManager.getManager(this).delegateSlashCommand(data, this);
-
-    // (async function () {
-    //   const url = `https://discord.com/api/v8/interactions/${data.id}/${data.token}/callback`;
-
-    //   const json = {
-    //     type: 4,
-    //     data: {
-    //       content: "loda lele bsdk!",
-    //     },
-    //   };
-    //   const res = await fetch(url, {
-    //     method: "POST",
-    //     body: JSON.stringify(json),
-    //     headers: {
-    //       "Content-type": "application/json; charset=UTF-8",
-    //     },
-    //   });
-    //   console.log(res);
-    // })();
   };
 
   upTime = (): string => {

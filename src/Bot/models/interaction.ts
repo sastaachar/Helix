@@ -28,4 +28,10 @@ type Interaction = {
   application_id: string;
 };
 
-export default Interaction;
+type OptionType = {
+  name: string;
+  value: string | number;
+  type: number;
+};
+
+export { Interaction, OptionType };
